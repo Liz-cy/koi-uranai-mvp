@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: koiuranai
+      POSTGRES_PASSWORD: koiuranai
+      POSTGRES_DB: koiuranai
+    ports:
+      - "5432:5432"
+    volumes:
+      - koi_uranai_pgdata:/var/lib/postgresql/data
+
+volumes:
+  koi_uranai_pgdata:

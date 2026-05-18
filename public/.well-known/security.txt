@@ -1,0 +1,5 @@
+Contact: mailto:security@example.com
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: ja, en
+
+# 本番では運営の連絡先メールに差し替えてください（RFC 9116）。
