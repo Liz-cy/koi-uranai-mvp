@@ -99,7 +99,21 @@ export async function POST(request: NextRequest) {
     }),
   });
 
+  const responseText = await response.text();
+
   if (!response.ok) {
+    let openaiMessage = "";
+    try {
+      const parsed = JSON.parse(responseText) as { error?: { message?: string; type?: string; code?: string } };
+      openaiMessage = parsed?.error?.message ?? parsed?.error?.type ?? "";
+    } catch {
+      openaiMessage = responseText.slice(0, 200);
+    }
+    console.error("[chat] OpenAI API error", {
+      httpStatus: response.status,
+      openaiMessage: openaiMessage || "(no body)",
+    });
+
     if (areServiceMocksDisabled()) {
       return NextResponse.json(
         { error: "応答の生成に失敗しました。しばらくしてからお試しください。" },
@@ -109,9 +123,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ reply: createMockReply(messages), source: "fallback" });
   }
 
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
+  let data: { choices?: Array<{ message?: { content?: string } }> };
+  try {
+    data = JSON.parse(responseText) as { choices?: Array<{ message?: { content?: string } }> };
+  } catch {
+    console.error("[chat] OpenAI returned non-JSON body", responseText.slice(0, 200));
+    if (areServiceMocksDisabled()) {
+      return NextResponse.json(
+        { error: "応答の取得に失敗しました。しばらくしてからお試しください。" },
+        { status: 502 },
+      );
+    }
+    return NextResponse.json({ reply: createMockReply(messages), source: "fallback" });
+  }
   const raw = data.choices?.[0]?.message?.content?.trim();
   if (!raw && areServiceMocksDisabled()) {
     return NextResponse.json(
