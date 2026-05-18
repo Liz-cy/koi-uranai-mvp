@@ -52,8 +52,9 @@ Search Console / Bing の所有権確認用トークンは `GOOGLE_SITE_VERIFICA
 2. 環境変数に **`OPENAI_API_KEY`**・**`STRIPE_SECRET_KEY`**・**`STRIPE_WEBHOOK_SECRET`**・**`NEXT_PUBLIC_APP_URL`**（本番の `https://` URL）・**`DATABASE_URL`**・**`CONSULTATION_SESSION_SECRET`**（十分な長さのランダム文字列）・**`ADMIN_TOKEN`** を入れる（Vercel の **Production** 向け。`VERCEL_ENV=production` のとき、キー未設定だとチャット／決済／鑑定APIは **503** でモック成功しません）
 
 自前サーバーなど **Vercel 以外** で本番運用する場合は、追加で **`DISABLE_SERVICE_MOCKS=true`** を入れると、同様にモック無効化の挙動になります（**`ALLOW_SERVICE_MOCKS=true`** で緊急時のみモックを許可。非推奨）。
-3. ビルドは既定の `npm run build` でよい（**ビルド時に** `prisma migrate deploy` が走り、本番 DB に未適用マイグレーションがあれば適用する。Vercel では **`DATABASE_URL` をビルド環境にも渡す**必要がある）  
-4. Stripe Webhook URL を `https://あなたのドメイン/api/stripe/webhook` に合わせる  
+3. 既定の `npm run build` は **`prisma generate` と `next build` のみ**です（Vercel 上で **ビルド失敗しにくく**するため。**ビルド時に `DATABASE_URL` は不要**）。本番用 PostgreSQL（Neon など）を用意したあと、**テーブル作成は次のどちらかで1回**行います。**A:** ローカルで `DATABASE_URL` に本番の接続文字列を指した状態で `npm run db:deploy` を実行。**B:** CI や慣れている場合は `npm run build:migrate`（`migrate deploy` 込み）を使う。
+4. 実行時には Vercel の **Environment Variables（Production）** に **`DATABASE_URL`** を必ず入れる（アプリが DB に接続します）。
+5. Stripe Webhook URL を `https://あなたのドメイン/api/stripe/webhook` に合わせる  
 
 詳細は Vercel / Stripe / DB プロバイダのドキュメントに従ってください。
 
